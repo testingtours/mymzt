@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mile Zero Tours Cover</title>
+  <style>
+    @font-face {
+      font-family: "Mile Zero Sans";
+      src: url("../assets/mzt/Mile-Zero-Sans.ttf") format("truetype");
+    }
+
+    :root {
+      --mzt-green: #a7d992;
+      --mzt-black: #1f211d;
+      --mzt-muted: #edf3e9;
+      --page-width: 816px;
+      --page-height: 1056px;
+      color-scheme: light;
+      font-family: "Mile Zero Sans", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eef2f7;
+      color: var(--mzt-black);
+      display: grid;
+      grid-template-columns: 320px 1fr;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .controls {
+      background: #fff;
+      border-right: 1px solid #d8dee7;
+      height: 100vh;
+      overflow: auto;
+      padding: 18px;
+      position: sticky;
+      top: 0;
+    }
+
+    .controls h1 {
+      font-size: 22px;
+      margin: 0 0 6px;
+    }
+
+    .controls p {
+      color: #5f6368;
+      font-size: 13px;
+      margin: 0 0 18px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 13px;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    input {
+      border: 1px solid #c7d0dc;
+      border-radius: 6px;
+      padding: 10px;
+      width: 100%;
+    }
+
+    .button {
+      background: #0b6bcb;
+      border: 0;
+      border-radius: 7px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 800;
+      padding: 10px 12px;
+    }
+
+    .stage {
+      overflow: auto;
+      padding: 28px;
+    }
+
+    .cover-page {
+      background: #fff;
+      box-shadow: 0 18px 50px rgba(33, 42, 62, .16);
+      display: block;
+      height: 1056px;
+      margin: 0 auto;
+      overflow: hidden;
+      position: relative;
+      width: 816px;
+    }
+
+    .cover-logo {
+      left: 98px;
+      position: absolute;
+      top: 112px;
+      z-index: 4;
+    }
+
+    .cover-logo img {
+      max-height: 96px;
+      max-width: 390px;
+      object-fit: contain;
+    }
+
+    .cover-image {
+      height: 420px;
+      left: 28px;
+      overflow: hidden;
+      position: absolute;
+      top: 356px;
+      width: 736px;
+      z-index: 2;
+    }
+
+    .cover-image img {
+      height: 100%;
+      object-fit: cover;
+      width: 100%;
+    }
+
+    .cover-title-card {
+      background: var(--mzt-black);
+      color: #fff;
+      height: 132px;
+      left: 8px;
+      padding: 18px 28px;
+      position: absolute;
+      top: 226px;
+      width: 688px;
+      z-index: 3;
+    }
+
+    .cover-title-card h2 {
+      font-family: Arial, sans-serif;
+      font-size: 28px;
+      font-weight: 400;
+      line-height: 1.36;
+      margin: 0;
+      text-align: right;
+    }
+
+    .cover-green {
+      background: var(--mzt-green);
+      bottom: 18px;
+      position: absolute;
+      right: 16px;
+      top: 22px;
+      width: 300px;
+      z-index: 1;
+    }
+
+    .cover-green::before,
+    .cover-green::after {
+      background: rgba(56, 111, 46, .16);
+      content: "";
+      height: 100%;
+      position: absolute;
+      top: 0;
+      width: 1px;
+    }
+
+    .cover-green::before {
+      left: 12px;
+    }
+
+    .cover-green::after {
+      left: 18px;
+    }
+
+    .cover-green-lines {
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(56, 111, 46, .1) 0,
+        rgba(56, 111, 46, .1) 1px,
+        transparent 1px,
+        transparent 126px
+      );
+      inset: 0;
+      position: absolute;
+    }
+
+    .prepared {
+      bottom: 86px;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-size: 15px;
+      left: 38px;
+      line-height: 2.2;
+      position: absolute;
+      z-index: 2;
+    }
+
+    .prepared strong {
+      display: block;
+      font-weight: 700;
+    }
+
+    @media (max-width: 980px) {
+      body {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        height: auto;
+        position: static;
+      }
+
+      .cover-page {
+        transform-origin: top center;
+        width: min(816px, 100%);
+      }
+    }
+
+    @media print {
+      @page {
+        size: letter portrait;
+        margin: 0;
+      }
+
+      body {
+        background: #fff;
+        display: block;
+      }
+
+      .controls {
+        display: none;
+      }
+
+      .stage {
+        padding: 0;
+      }
+
+      .cover-page {
+        box-shadow: none;
+        height: 11in;
+        margin: 0;
+        width: 8.5in;
+      }
+    }
+  </style>
+</head>
+<body>
+  <aside class="controls">
+    <h1>MZT Cover</h1>
+    <p>Upload a hero image or logo, edit the text, then print or use this page inside the buffet builder.</p>
+    <div class="field">
+      <label for="logoUpload">Logo</label>
+      <input id="logoUpload" type="file" accept="image/*">
+    </div>
+    <div class="field">
+      <label for="heroUpload">Cover image</label>
+      <input id="heroUpload" type="file" accept="image/*">
+    </div>
+    <div class="field">
+      <label for="tourTitle">Tour title</label>
+      <input id="tourTitle" value="The Benelux Tour">
+    </div>
+    <div class="field">
+      <label for="tourDates">Dates</label>
+      <input id="tourDates" value="April 16 – 28, 2026">
+    </div>
+    <div class="field">
+      <label for="guideType">Document type</label>
+      <input id="guideType" value="Travel Guide">
+    </div>
+    <div class="field">
+      <label for="preparedFor">Prepared for</label>
+      <input id="preparedFor" value="Fullname">
+    </div>
+    <div class="field">
+      <label for="bookingNum">Booking number</label>
+      <input id="bookingNum" value="{{BookingNum}}">
+    </div>
+    <button class="button" type="button" id="printPage">Print / PDF</button>
+  </aside>
+
+  <main class="stage">
+    <article class="cover-page">
+      <div class="cover-logo">
+        <img id="logoImage" src="../assets/mzt/milezerotours-wordmark-transparent.png" alt="Mile Zero Tours">
+      </div>
+      <div class="cover-image">
+        <img id="heroImage" src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=80" alt="">
+      </div>
+      <div class="cover-title-card">
+        <h2><span id="titleOut">The Benelux Tour</span><br><span id="datesOut">April 16 – 28, 2026</span><br><span id="guideOut">Travel Guide</span></h2>
+      </div>
+      <div class="cover-green">
+        <div class="cover-green-lines"></div>
+        <div class="prepared">
+          <strong>Prepared for <span id="preparedOut">Fullname</span></strong>
+          <strong>Booking #: <span id="bookingOut">{{BookingNum}}</span></strong>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <script>
+    function bindText(inputId, outputId) {
+      const input = document.querySelector(`#${inputId}`);
+      const output = document.querySelector(`#${outputId}`);
+      input.addEventListener("input", () => {
+        output.textContent = input.value;
+      });
+    }
+
+    function bindUpload(inputId, imageId) {
+      const input = document.querySelector(`#${inputId}`);
+      const image = document.querySelector(`#${imageId}`);
+      input.addEventListener("change", () => {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+          image.src = reader.result;
+        });
+        reader.readAsDataURL(file);
+      });
+    }
+
+    bindText("tourTitle", "titleOut");
+    bindText("tourDates", "datesOut");
+    bindText("guideType", "guideOut");
+    bindText("preparedFor", "preparedOut");
+    bindText("bookingNum", "bookingOut");
+    bindUpload("logoUpload", "logoImage");
+    bindUpload("heroUpload", "heroImage");
+    document.querySelector("#printPage").addEventListener("click", () => window.print());
+  </script>
+</body>
+</html>
