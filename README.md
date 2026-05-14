@@ -1,7 +1,7 @@
 # Document Buffet V1
 
-Static GitHub Pages version of the Mile Zero Tours document builder.
-
+Link to try: [Document Buffet
+](https://testingtours.github.io/mymzt/document-buffet.html)
 ## Quick Start
 
 Open `index.html` locally, or publish this repository with GitHub Pages from the repository root. The default Pages URL will load the builder directly.
