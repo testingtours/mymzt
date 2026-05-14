@@ -18,6 +18,8 @@ Required static files:
 
 Any visible sidebar field can be prefilled by using its HTML `id` as a query parameter.
 
+The app also updates the browser URL as you edit fields, upload images, toggle pages/sections, and reorder pages. Copy the current address bar URL to share the current book setup.
+
 Example:
 
 ```text
@@ -75,6 +77,14 @@ Use a strict list of pages to include:
 ```text
 index.html?pages=cover,services,airport-security,daybyday-l1
 ```
+
+Set page order:
+
+```text
+index.html?order=cover,services,airport-security,daybyday-l1,things-to-remember,notes
+```
+
+The app writes `order=` automatically when pages are moved with the arrow buttons.
 
 Boolean values accepted as false:
 
@@ -270,6 +280,12 @@ Only show the cover and personal details pages:
 
 ```text
 index.html?pages=cover,services
+```
+
+Open a custom page order:
+
+```text
+index.html?order=cover,services,airport-security,daybyday-l1,notes
 ```
 
 Set guest and booking:

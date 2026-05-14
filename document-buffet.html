@@ -1791,6 +1791,16 @@ Communications | Check your mobile plan before departure to avoid unexpected roa
       const params = new URLSearchParams(window.location.search);
       if (!params.size) return;
 
+      const pageOrder = parameterValue(params, "order");
+      if (pageOrder !== null) {
+        const orderedIds = pageOrder.split(",").map((id) => id.trim()).filter(Boolean);
+        const orderedPages = orderedIds
+          .map((id) => documentPages.find((page) => page.id === id))
+          .filter(Boolean);
+        const remainingPages = documentPages.filter((page) => !orderedIds.includes(page.id));
+        documentPages = [...orderedPages, ...remainingPages];
+      }
+
       document.querySelectorAll("input[id], textarea[id], select[id]").forEach((field) => {
         const value = parameterValue(params, field.id);
         if (value !== null) setFieldFromParam(field.id, value);
@@ -1831,6 +1841,39 @@ Communications | Check your mobile plan before departure to avoid unexpected roa
           page.selected = selectedIds.has(page.id);
         });
       }
+    }
+
+    let shareUrlTimer;
+
+    function updateShareUrl() {
+      const params = new URLSearchParams();
+
+      document.querySelectorAll("input[id], textarea[id], select[id]").forEach((field) => {
+        if (field.type === "file" || field.id === "customTargetPage") return;
+        params.set(field.id, field.type === "checkbox" ? String(field.checked) : field.value);
+      });
+
+      params.set("coverLogoSrc", coverState.logoSrc);
+      params.set("coverHeroSrc", coverState.heroSrc);
+      params.set("dayStyle1ImageSrc", dayState.dayStyle1.imageSrc);
+      params.set("dayByDayMainImageSrc", dayState.dayByDay.mainImageSrc);
+      params.set("day2ImageSrc", dayState.dayByDay.day2ImageSrc);
+      params.set("order", documentPages.map((page) => page.id).join(","));
+      params.set("pages", documentPages.filter((page) => page.selected).map((page) => page.id).join(","));
+
+      documentPages.forEach((page) => {
+        page.subsections.forEach((section) => {
+          params.set(`section.${page.id}.${section.id}`, String(section.selected));
+        });
+      });
+
+      const nextUrl = `${window.location.pathname}?${params.toString()}${window.location.hash}`;
+      window.history.replaceState(null, "", nextUrl);
+    }
+
+    function scheduleShareUrlUpdate() {
+      clearTimeout(shareUrlTimer);
+      shareUrlTimer = setTimeout(updateShareUrl, 250);
     }
 
     function renderCoverPage(pageNumber) {
@@ -2354,6 +2397,7 @@ ${controls.preview.innerHTML}
     applyUrlParameters();
     renderPicker();
     renderPreview();
+    scheduleShareUrlUpdate();
 
     function bindImageUpload(inputId, stateKey) {
       const input = document.querySelector(`#${inputId}`);
@@ -2364,6 +2408,7 @@ ${controls.preview.innerHTML}
         reader.addEventListener("load", () => {
           coverState[stateKey] = reader.result;
           renderPreview();
+          scheduleShareUrlUpdate();
         });
         reader.readAsDataURL(file);
       });
@@ -2381,6 +2426,7 @@ ${controls.preview.innerHTML}
         reader.addEventListener("load", () => {
           dayState[dayKey].imageSrc = reader.result;
           renderPreview();
+          scheduleShareUrlUpdate();
         });
         reader.readAsDataURL(file);
       });
@@ -2397,6 +2443,7 @@ ${controls.preview.innerHTML}
         reader.addEventListener("load", () => {
           dayState.dayByDay[stateKey] = reader.result;
           renderPreview();
+          scheduleShareUrlUpdate();
         });
         reader.readAsDataURL(file);
       });
@@ -2406,7 +2453,10 @@ ${controls.preview.innerHTML}
     bindDayByDayImageUpload("day2ImageUpload", "day2ImageSrc");
 
     document.querySelectorAll("input, textarea, select").forEach((input) => {
-      input.addEventListener("input", renderPreview);
+      input.addEventListener("input", () => {
+        renderPreview();
+        scheduleShareUrlUpdate();
+      });
     });
 
     controls.picker.addEventListener("change", (event) => {
@@ -2425,6 +2475,7 @@ ${controls.preview.innerHTML}
       }
 
       renderPreview();
+      scheduleShareUrlUpdate();
     });
 
     controls.picker.addEventListener("click", (event) => {
@@ -2432,6 +2483,7 @@ ${controls.preview.innerHTML}
       if (!button) return;
       event.preventDefault();
       movePage(button.dataset.movePage, Number(button.dataset.direction));
+      scheduleShareUrlUpdate();
     });
 
     function customSubsection() {
@@ -2461,6 +2513,7 @@ ${controls.preview.innerHTML}
       });
       renderPicker();
       renderPreview();
+      scheduleShareUrlUpdate();
     });
 
     document.querySelector("#addCustomSection").addEventListener("click", () => {
@@ -2471,6 +2524,7 @@ ${controls.preview.innerHTML}
       targetPage.selected = true;
       renderPicker();
       renderPreview();
+      scheduleShareUrlUpdate();
     });
 
     document.querySelector("#printPdf").addEventListener("click", () => window.print());
@@ -2524,6 +2578,7 @@ ${controls.preview.innerHTML}
       dayState.dayByDay.day2ImageSrc = "https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?auto=format&fit=crop&w=1000&q=80";
       renderPicker();
       renderPreview();
+      scheduleShareUrlUpdate();
     });
 
     document.querySelector("#toggleEdit").addEventListener("click", (event) => {
