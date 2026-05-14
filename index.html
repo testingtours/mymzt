@@ -1638,6 +1638,25 @@ Communications | Check your mobile plan before departure to avoid unexpected roa
         .replaceAll('"', "&quot;");
     }
 
+    function markdownInline(value) {
+      return escapeHtml(value)
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2">$1</a>')
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    }
+
+    function markdownBlocks(value) {
+      const blocks = String(value).split(/\n\s*\n/).map((block) => block.trim()).filter(Boolean);
+      return blocks.map((block) => {
+        const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+        const isList = lines.length && lines.every((line) => /^[-*]\s+/.test(line));
+        if (isList) {
+          return `<ul>${lines.map((line) => `<li>${markdownInline(line.replace(/^[-*]\s+/, ""))}</li>`).join("")}</ul>`;
+        }
+        return `<p>${markdownInline(lines.join(" "))}</p>`;
+      }).join("");
+    }
+
     function slugify(value) {
       return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "document";
     }
@@ -1725,6 +1744,93 @@ Communications | Check your mobile plan before departure to avoid unexpected roa
           <textarea id="day${day}ItineraryBody">${escapeHtml(body)}</textarea>
         </div>
       `).join("");
+    }
+
+    function decodeBase64Param(value) {
+      const normalized = value.replaceAll(" ", "+").replaceAll("-", "+").replaceAll("_", "/");
+      const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+      try {
+        return decodeURIComponent(escape(atob(padded)));
+      } catch {
+        return value;
+      }
+    }
+
+    function parameterValue(params, key) {
+      if (params.has(`${key}_b64`)) return decodeBase64Param(params.get(`${key}_b64`));
+      if (params.has(key)) return params.get(key);
+      return null;
+    }
+
+    function parameterBool(value) {
+      return !["0", "false", "off", "no", "unchecked"].includes(String(value).toLowerCase());
+    }
+
+    function setFieldFromParam(id, value) {
+      const field = document.querySelector(`#${CSS.escape(id)}`);
+      if (!field || value === null) return false;
+      if (field.type === "checkbox") {
+        field.checked = parameterBool(value);
+      } else {
+        field.value = value;
+      }
+      return true;
+    }
+
+    function setImageState(path, value) {
+      if (!value) return;
+      value = value.startsWith("data:") ? value.replaceAll(" ", "+") : value;
+      if (path === "cover.logo") coverState.logoSrc = value;
+      if (path === "cover.hero") coverState.heroSrc = value;
+      if (path === "daybyday.l1") dayState.dayStyle1.imageSrc = value;
+      if (path === "daybyday.main") dayState.dayByDay.mainImageSrc = value;
+      if (path === "daybyday.day2") dayState.dayByDay.day2ImageSrc = value;
+    }
+
+    function applyUrlParameters() {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.size) return;
+
+      document.querySelectorAll("input[id], textarea[id], select[id]").forEach((field) => {
+        const value = parameterValue(params, field.id);
+        if (value !== null) setFieldFromParam(field.id, value);
+      });
+
+      const imageAliases = {
+        coverLogoSrc: "cover.logo",
+        coverHeroSrc: "cover.hero",
+        dayStyle1ImageSrc: "daybyday.l1",
+        dayByDayMainImageSrc: "daybyday.main",
+        day2ImageSrc: "daybyday.day2"
+      };
+
+      Object.entries(imageAliases).forEach(([key, path]) => {
+        const value = parameterValue(params, key);
+        if (value !== null) setImageState(path, value);
+      });
+
+      params.forEach((value, key) => {
+        if (key.startsWith("page.")) {
+          const pageId = key.slice(5);
+          const page = documentPages.find((item) => item.id === pageId);
+          if (page) page.selected = parameterBool(value);
+        }
+
+        if (key.startsWith("section.")) {
+          const [, pageId, sectionId] = key.match(/^section\.([^.]+)\.(.+)$/) || [];
+          const page = documentPages.find((item) => item.id === pageId);
+          const section = page?.subsections.find((item) => item.id === sectionId);
+          if (section) section.selected = parameterBool(value);
+        }
+      });
+
+      const pageList = parameterValue(params, "pages");
+      if (pageList !== null) {
+        const selectedIds = new Set(pageList.split(",").map((id) => id.trim()).filter(Boolean));
+        documentPages.forEach((page) => {
+          page.selected = selectedIds.has(page.id);
+        });
+      }
     }
 
     function renderCoverPage(pageNumber) {
@@ -1839,12 +1945,7 @@ Communications | Check your mobile plan before departure to avoid unexpected roa
     }
 
     function renderParagraphs(value) {
-      return String(value)
-        .split(/\n+/)
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .map((line) => `<p>${escapeHtml(line)}</p>`)
-        .join("");
+      return markdownBlocks(value);
     }
 
     function renderDayStyle1Page(page, pageNumber) {
@@ -1870,7 +1971,7 @@ Communications | Check your mobile plan before departure to avoid unexpected roa
     }
 
     function renderBullets(id) {
-      const bullets = linesFrom(id).map((line) => `<li>${escapeHtml(line)}</li>`).join("");
+      const bullets = linesFrom(id).map((line) => `<li>${markdownInline(line.replace(/^[-*]\s+/, ""))}</li>`).join("");
       return bullets ? `<ul>${bullets}</ul>` : "";
     }
 
@@ -1982,7 +2083,7 @@ Communications | Check your mobile plan before departure to avoid unexpected roa
           return `
             <section class="day-entry" contenteditable="${editingEnabled}">
               <h2>${escapeHtml(title)}</h2>
-              ${bodyLines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
+              ${renderParagraphs(bodyLines.join("\n"))}
             </section>`;
         })
         .join("");
@@ -2039,7 +2140,7 @@ Communications | Check your mobile plan before departure to avoid unexpected roa
           <article class="info-content" contenteditable="${editingEnabled}">
             ${pipeRows("rememberDetailRows").map(([heading = "", body = ""]) => `
               <h2>${escapeHtml(heading)}:</h2>
-              <p>${escapeHtml(body)}</p>
+              ${renderParagraphs(body)}
             `).join("")}
           </article>
           <div class="page-number">Page ${pageNumber}</div>
@@ -2250,6 +2351,7 @@ ${controls.preview.innerHTML}
     }
 
     renderExtraDayFields();
+    applyUrlParameters();
     renderPicker();
     renderPreview();
 
